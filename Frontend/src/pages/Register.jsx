@@ -26,54 +26,30 @@ export default function Register() {
   };
 
   return (
-    <div className="container">
-      <div className="form-card">
+    <div className="auth-wrapper container">
+      <div className="form-card glass-panel">
         <h1>Create an account</h1>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="johndoe"
-              required
-              minLength={2}
-              autoComplete="username"
-            />
+            <input id="username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="johndoe" minLength={2} className="form-control" required />
           </div>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoComplete="email"
-            />
+            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="form-control" required />
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
-              required
-              minLength={6}
-              autoComplete="new-password"
-            />
+            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" minLength={6} className="form-control" required />
           </div>
-          {error && <p className="error-msg">{error}</p>}
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? 'Creating account…' : 'Sign up'}
+          {error && <p style={{color:'var(--red)'}}>{error}</p>}
+          <button type="submit" className="btn btn-primary" style={{width:'100%', marginTop:'16px'}} disabled={submitting}>
+            {submitting ? 'Creating…' : 'Sign up'}
           </button>
         </form>
-        <Link to="/login">Already have an account? Sign in</Link>
+        <div style={{marginTop:'24px', textAlign:'center', fontSize:'14px'}}>
+          <Link to="/login">Already have an account? Sign in</Link>
+        </div>
       </div>
     </div>
   );

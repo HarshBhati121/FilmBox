@@ -25,40 +25,26 @@ export default function Login() {
   };
 
   return (
-    <div className="container">
-      <div className="form-card">
-        <h1>Sign in</h1>
+    <div className="auth-wrapper container">
+      <div className="form-card glass-panel">
+        <h1>Welcome back</h1>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              autoComplete="email"
-            />
+            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="form-control" required />
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-            />
+            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="form-control" required />
           </div>
-          {error && <p className="error-msg">{error}</p>}
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {error && <p style={{color:'var(--red)'}}>{error}</p>}
+          <button type="submit" className="btn btn-primary" style={{width:'100%', marginTop:'16px'}} disabled={submitting}>
             {submitting ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
-        <Link to="/register">Create an account</Link>
+        <div style={{marginTop:'24px', textAlign:'center', fontSize:'14px'}}>
+          <Link to="/register">Don't have an account? Create one</Link>
+        </div>
       </div>
     </div>
   );
