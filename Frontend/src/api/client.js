@@ -1,5 +1,5 @@
 // Vite proxy forwards /api to http://localhost:5000 — no CORS issues
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 function getToken() {
   return localStorage.getItem('token');
