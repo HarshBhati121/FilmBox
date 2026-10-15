@@ -12,7 +12,10 @@ import tvRoutes from "./routes/tvRoutes.js";
 const app = express();
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: [
+    "http://localhost:5173",
+    "https://film-box-ruby.vercel.app"
+  ],
   credentials: true
 }));
 
