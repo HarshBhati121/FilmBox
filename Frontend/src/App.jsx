@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { initAvatarPosters } from './utils/avatar';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -12,22 +14,36 @@ import FilmDetail from './pages/FilmDetail';
 import Lists from './pages/Lists';
 import ListDetail from './pages/ListDetail';
 import Members from './pages/Members';
+import Friends from './pages/Friends';
+import SearchPage from './pages/Search';
+import Explore from './pages/Explore';
+import TvBrowse from './pages/TvBrowse';
+import TvDetail from './pages/TvDetail';
 
 function App() {
+  useEffect(() => {
+    initAvatarPosters();
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Toaster position="bottom-right" toastOptions={{ className: 'bg-gray-800 text-white' }} />
+        <Toaster position="bottom-right" />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="films" element={<Films />} />
+            <Route path="tv" element={<TvBrowse />} />
+            <Route path="tv/:id" element={<TvDetail />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="explore" element={<Explore />} />
             <Route path="movies/:id" element={<FilmDetail />} />
             <Route path="lists" element={<Lists />} />
             <Route path="lists/:id" element={<ListDetail />} />
             <Route path="members" element={<Members />} />
+            <Route path="friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
             
             <Route path="profile/:username?" element={<Profile />} />
             

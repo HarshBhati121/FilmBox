@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMovie } from '../hooks/useMovie';
-import { reviewApi } from '../api/client';
+import { movieApi, reviewApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import WatchlistButton from '../components/WatchlistButton';
+import AddToListButton from '../components/AddToListButton';
 import StarRating from '../components/StarRating';
 import ReviewCard from '../components/ReviewCard';
+import MovieCard from '../components/MovieCard';
 import toast from 'react-hot-toast';
 
 export default function FilmDetail() {
@@ -14,6 +16,7 @@ export default function FilmDetail() {
   const { user } = useAuth();
   
   const [reviews, setReviews] = useState([]);
+  const [similar, setSimilar] = useState([]);
   const [myRating, setMyRating] = useState(0);
   const [myReview, setMyReview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,13 +32,13 @@ export default function FilmDetail() {
       }
     };
     fetchReviews();
+    movieApi.similar(id).then((data) => setSimilar((data.results || []).slice(0, 8))).catch(() => {});
   }, [id]);
 
   if (loading) return <div style={{textAlign:'center', padding:'80px', color:'var(--text-secondary)'}}>Loading film details...</div>;
   if (error || !movie) return <div style={{textAlign:'center', padding:'80px', color:'var(--red)'}}>{error || 'Film not found'}</div>;
 
   const IMAGE_BASE = import.meta.env.VITE_TMDB_IMAGE_BASE || 'https://image.tmdb.org/t/p/w500';
-  const BACKDROP_BASE = 'https://image.tmdb.org/t/p/original';
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -57,23 +60,8 @@ export default function FilmDetail() {
   };
 
   return (
-    <div>
-      {/* Backdrop Header */}
-      <div className="film-backdrop-container">
-        {movie.backdrop_path && (
-          <>
-            <div className="film-backdrop-gradient" />
-            <img 
-              src={`${BACKDROP_BASE}${movie.backdrop_path}`} 
-              alt={movie.title} 
-              className="film-backdrop-image"
-            />
-          </>
-        )}
-      </div>
-
-      <div className="container" style={{marginTop: '-120px', position: 'relative', zIndex: 10, paddingBottom: '80px'}}>
-        <div className="film-detail-layout">
+    <div className="container page-wrapper">
+      <div className="film-detail-layout">
           {/* Poster & Actions */}
           <div className="film-poster-sidebar">
             <img 
@@ -84,6 +72,9 @@ export default function FilmDetail() {
             
             <div className="glass-panel" style={{marginTop:'24px', padding:'20px'}}>
               <WatchlistButton movieId={movie.id} />
+              <div style={{marginTop:'12px'}}>
+                <AddToListButton movieId={movie.id} />
+              </div>
               
               <div style={{marginTop:'16px', paddingTop:'16px', borderTop:'1px solid var(--glass-border)'}}>
                 <p style={{fontSize:'14px', color:'var(--text-secondary)', marginBottom:'8px'}}>Rate this film</p>
@@ -152,17 +143,27 @@ export default function FilmDetail() {
               {/* Review List */}
               <div style={{display:'flex', flexDirection:'column', gap:'16px'}}>
                 {reviews.map(review => (
-                  <ReviewCard key={review._id} review={review} />
+                  <ReviewCard key={review._id} review={review} onChange={setReviews} movieId={id} />
                 ))}
                 {reviews.length === 0 && (
-                  <p style={{color:'var(--text-secondary)', fontStyle:'italic'}}>No reviews yet. Be the first to share your thoughts!</p>
+                  <p>No reviews yet. Be the first to share your thoughts.</p>
                 )}
               </div>
             </div>
 
+            {similar.length > 0 && (
+              <div style={{ marginTop: '24px' }}>
+                <h2 className="section-title">Similar Movies</h2>
+                <div className="poster-grid">
+                  {similar.map((item) => (
+                    <MovieCard key={item.id} movie={item} />
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
-      </div>
     </div>
   );
 }

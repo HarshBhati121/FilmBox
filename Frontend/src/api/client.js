@@ -47,20 +47,28 @@ export const userApi = {
   getMe: () => api('/user/me'),
   updateMe: (body) => api('/user/me', { method: 'PUT', body: JSON.stringify(body) }),
   getProfile: (username) => api(`/user/profile/${username}`),
-  search: (query) => api(`/user/search?q=${query}`),
+  search: (query) => api(`/user/search?q=${encodeURIComponent(query)}`),
   follow: (id) => api(`/user/${id}/follow`, { method: 'POST' }),
   unfollow: (id) => api(`/user/${id}/unfollow`, { method: 'POST' }),
 };
 
 export const movieApi = {
-  search: (query, page = 1) => api(`/movies/search?query=${query}&page=${page}`),
+  search: (query, page = 1) => api(`/movies/search?query=${encodeURIComponent(query)}&page=${page}`),
   trending: () => api('/movies/trending'),
   getMovie: (id) => api(`/movies/${id}`),
+  similar: (id) => api(`/movies/${id}/similar`),
+};
+
+export const tvApi = {
+  search: (query, page = 1) => api(`/tv/search?query=${encodeURIComponent(query)}&page=${page}`),
+  trending: () => api('/tv/trending'),
+  get: (id) => api(`/tv/${id}`),
 };
 
 export const reviewApi = {
   create: (movieId, rating, reviewText) => api('/reviews', { method: 'POST', body: JSON.stringify({ movieId, rating, reviewText }) }),
   getForMovie: (movieId) => api(`/reviews/movie/${movieId}`),
+  getRecent: () => api('/reviews/recent'),
   getForUser: (userId) => api(`/reviews/user/${userId}`),
   delete: (id) => api(`/reviews/${id}`, { method: 'DELETE' }),
   like: (id) => api(`/reviews/${id}/like`, { method: 'POST' }),
@@ -89,5 +97,6 @@ export const listApi = {
 
 export const activityApi = {
   getFeed: (page = 1) => api(`/activity/feed?page=${page}`),
+  getRecent: () => api('/activity/recent'),
   getUserActivity: (userId) => api(`/activity/user/${userId}`),
 };

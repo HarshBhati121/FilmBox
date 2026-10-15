@@ -1,25 +1,59 @@
+import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../hooks/useWatchlist';
 import toast from 'react-hot-toast';
 
 export default function WatchlistButton({ movieId, className = '' }) {
-  const { isInWatchlist, toggleWatchlist, loading } = useWatchlist(movieId);
+  const { user } = useAuth();
+  const { getMovieStatus, addMovie, removeMovie, toggleStatus, loading } = useWatchlist(user);
 
-  const handleClick = async () => {
-    try {
-      await toggleWatchlist();
-    } catch (err) {
-      toast.error('Must be logged in to manage watchlist');
+  const status = getMovieStatus(movieId);
+
+  const requireLogin = () => {
+    toast.error('Please sign in to manage your watchlist');
+  };
+
+  const handleWatchlist = async () => {
+    if (!user) return requireLogin();
+    if (status === 'watchlist') {
+      await removeMovie(movieId);
+    } else if (status === 'watched') {
+      await toggleStatus(movieId);
+    } else {
+      await addMovie(movieId, 'watchlist');
+    }
+  };
+
+  const handleWatched = async () => {
+    if (!user) return requireLogin();
+    if (status === 'watched') {
+      await removeMovie(movieId);
+    } else if (status === 'watchlist') {
+      await toggleStatus(movieId);
+    } else {
+      await addMovie(movieId, 'watched');
     }
   };
 
   return (
-    <button 
-      onClick={handleClick} 
-      disabled={loading}
-      className={`btn ${isInWatchlist ? 'btn-secondary' : 'btn-primary'} ${className}`}
-      style={{width:'100%'}}
-    >
-      {loading ? '...' : isInWatchlist ? '✓ In Watchlist' : '+ Add to Watchlist'}
-    </button>
+    <div className={`film-action-stack ${className}`}>
+      <button
+        type="button"
+        onClick={handleWatchlist}
+        disabled={loading}
+        className={`btn ${status === 'watchlist' ? 'btn-secondary' : 'btn-primary'}`}
+        style={{ width: '100%' }}
+      >
+        {loading ? '...' : status === 'watchlist' ? '✓ On Watchlist' : '+ Add to Watchlist'}
+      </button>
+      <button
+        type="button"
+        onClick={handleWatched}
+        disabled={loading}
+        className={`btn ${status === 'watched' ? 'btn-secondary' : 'btn-secondary'}`}
+        style={{ width: '100%' }}
+      >
+        {status === 'watched' ? '✓ Watched' : 'Mark as watched'}
+      </button>
+    </div>
   );
 }

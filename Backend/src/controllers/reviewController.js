@@ -28,6 +28,18 @@ export const createReview = async (req, res) => {
   }
 };
 
+export const getRecentReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({ reviewText: { $exists: true, $ne: "" } })
+      .sort("-createdAt")
+      .limit(8)
+      .populate("userId", "username avatar");
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getMovieReviews = async (req, res) => {
   try {
     const { movieId } = req.params;

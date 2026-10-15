@@ -41,7 +41,15 @@ const userSchema = new mongoose.Schema(
     following: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "User"
-    }]
+    }],
+    favoriteFilms: {
+      type: [Number],
+      default: [0, 0, 0, 0],
+      validate: {
+        validator: (v) => v.length <= 4,
+        message: "You can only have up to 4 favorite films"
+      }
+    }
   },
   { timestamps: true }
 );

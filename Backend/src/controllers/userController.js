@@ -1,4 +1,12 @@
 import User from "../models/User.js";
+import { resolveAvatar } from "../utils/avatar.js";
+
+async function withResolvedAvatar(user) {
+  if (!user) return user;
+  const doc = user.toObject ? user.toObject() : { ...user };
+  doc.avatar = await resolveAvatar(doc.username, doc.avatar);
+  return doc;
+}
 
 export const getMe = async (req, res) => {
   try {
@@ -8,7 +16,7 @@ export const getMe = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(user);
+    res.json(await withResolvedAvatar(user));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -18,7 +26,7 @@ export const getProfile = async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username }).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+    res.json(await withResolvedAvatar(user));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -27,11 +35,15 @@ export const getProfile = async (req, res) => {
 export const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q) return res.json([]);
-    const users = await User.find({ username: { $regex: q, $options: "i" } })
+    if (!q || !q.trim()) return res.json([]);
+
+    const users = await User.find({ username: { $regex: q.trim(), $options: "i" } })
       .select("username avatar bio _id")
-      .limit(20);
-    res.json(users);
+      .sort({ createdAt: -1 })
+      .limit(24);
+
+    const resolved = await Promise.all(users.map((user) => withResolvedAvatar(user)));
+    res.json(resolved);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -39,7 +51,7 @@ export const searchUsers = async (req, res) => {
 
 export const followUser = async (req, res) => {
   try {
-    if (req.userId === req.params.id) {
+    if (String(req.userId) === String(req.params.id)) {
       return res.status(400).json({ message: "Cannot follow yourself" });
     }
 
@@ -50,7 +62,11 @@ export const followUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!currentUser.following.includes(targetUser._id)) {
+    const alreadyFollowing = currentUser.following.some(
+      (id) => String(id) === String(targetUser._id)
+    );
+
+    if (!alreadyFollowing) {
       currentUser.following.push(targetUser._id);
       targetUser.followers.push(currentUser._id);
       await currentUser.save();
@@ -95,17 +111,29 @@ export const unfollowUser = async (req, res) => {
 
 export const updateMe = async (req, res) => {
   try {
+    const updates = {};
+    if (req.body.bio !== undefined) updates.bio = req.body.bio;
+    if (req.body.favoriteFilms !== undefined) {
+      if (!Array.isArray(req.body.favoriteFilms) || req.body.favoriteFilms.length > 4) {
+        return res.status(400).json({ message: "You can only have up to 4 favorite films" });
+      }
+      updates.favoriteFilms = req.body.favoriteFilms
+        .slice(0, 4)
+        .map((id) => Number(id))
+        .map((id) => (Number.isNaN(id) || id === 0 ? 0 : id));
+    }
+
     const user = await User.findByIdAndUpdate(
       req.userId,
-      req.body,
-      { new: true }
+      updates,
+      { new: true, runValidators: true }
     ).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(user);
+    res.json(await withResolvedAvatar(user));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

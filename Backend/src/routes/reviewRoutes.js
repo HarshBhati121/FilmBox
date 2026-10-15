@@ -3,6 +3,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 import {
   createReview,
   getMovieReviews,
+  getRecentReviews,
   getUserReviews,
   deleteReview,
   likeReview,
@@ -12,6 +13,7 @@ import {
 
 const router = express.Router();
 
+router.get("/recent", getRecentReviews);
 router.get("/movie/:movieId", getMovieReviews);
 router.get("/user/:userId", getUserReviews);
 

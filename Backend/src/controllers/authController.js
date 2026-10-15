@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { generateFilmPosterAvatar } from "../utils/avatar.js";
 
 export const register = async (req, res) => {
   try {
@@ -8,10 +9,13 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const avatar = await generateFilmPosterAvatar(username);
+
     await User.create({
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      avatar
     });
 
     res.json({ message: "User registered" });

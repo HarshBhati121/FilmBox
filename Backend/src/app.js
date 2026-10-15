@@ -7,6 +7,7 @@ import reviewRoutes from "./routes/reviewRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
 import listRoutes from "./routes/listRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
+import tvRoutes from "./routes/tvRoutes.js";
 
 const app = express();
 
@@ -18,12 +19,13 @@ app.use(cors({
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Letterboxd Backend Running");
+  res.send("FilmBox API");
 });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/movies", movieRoutes);
+app.use("/api/tv", tvRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/watchlist", watchlistRoutes);
 app.use("/api/lists", listRoutes);

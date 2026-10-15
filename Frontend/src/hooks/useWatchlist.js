@@ -32,18 +32,23 @@ export function useWatchlist(user) {
 
   const addMovie = useCallback(async (movieId, status = 'watchlist') => {
     if (!user) return toast.error('Please login first');
-    
-    // Optimistic update
-    const newItem = { movieId, status };
-    setWatchlist(prev => [...prev, newItem]);
-    
+
+    setWatchlist((prev) => {
+      const exists = prev.some((item) => Number(item.movieId) === Number(movieId));
+      if (exists) {
+        return prev.map((item) =>
+          Number(item.movieId) === Number(movieId) ? { ...item, status } : item
+        );
+      }
+      return [...prev, { movieId, status }];
+    });
+
     try {
       await watchlistApi.add(movieId, status);
       toast.success(status === 'watched' ? 'Marked as watched' : 'Added to watchlist');
     } catch (err) {
       toast.error(err.message);
-      // Revert optimistic update
-      setWatchlist(prev => prev.filter(item => item.movieId !== movieId));
+      setWatchlist((prev) => prev.filter((item) => Number(item.movieId) !== Number(movieId)));
     }
   }, [user]);
 

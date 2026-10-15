@@ -1,91 +1,118 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { movieApi, activityApi } from '../api/client';
+import { movieApi, tvApi, reviewApi, activityApi } from '../api/client';
 import MovieCard from '../components/MovieCard';
-import ActivityItem from '../components/ActivityItem';
+import FriendActivityItem from '../components/FriendActivityItem';
 
 export default function Home() {
-  const { user } = useAuth();
-  const [trending, setTrending] = useState([]);
-  const [feed, setFeed] = useState([]);
-  const [loadingTasks, setLoadingTasks] = useState(2); // Wait for trending and feed
+  const [movies, setMovies] = useState([]);
+  const [shows, setShows] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    let isMounted = true;
-    const fetchHomeData = async () => {
-      try {
-        const trendingData = await movieApi.trending();
-        if (isMounted) setTrending(trendingData.results?.slice(0, 12) || []);
-      } catch (err) {
-        console.error('Failed to fetch trending', err);
-      } finally {
-        if (isMounted) setLoadingTasks(prev => prev - 1);
-      }
+    let mounted = true;
 
-      if (user) {
-        try {
-          const feedData = await activityApi.getFeed(1);
-          if (isMounted) setFeed(feedData.activity || []);
-        } catch (err) {
-          console.error('Failed to fetch feed', err);
-        } finally {
-          if (isMounted) setLoadingTasks(prev => prev - 1);
-        }
-      } else {
-        if (isMounted) setLoadingTasks(prev => prev - 1);
+    const load = async () => {
+      try {
+        const [trendingMovies, trendingTv, recentReviews, recentActivity] = await Promise.all([
+          movieApi.trending(),
+          tvApi.trending().catch(() => ({ results: [] })),
+          reviewApi.getRecent().catch(() => []),
+          activityApi.getRecent().catch(() => []),
+        ]);
+        if (!mounted) return;
+        setMovies(trendingMovies.results?.slice(0, 10) || []);
+        setShows(trendingTv.results?.slice(0, 10) || []);
+        setReviews(Array.isArray(recentReviews) ? recentReviews : []);
+        setActivity(Array.isArray(recentActivity) ? recentActivity : []);
+      } catch (err) {
+        if (mounted) setError(err.message || 'Could not load homepage');
       }
     };
-    
-    fetchHomeData();
-    return () => { isMounted = false; };
-  }, [user]);
+
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <div className="container page-wrapper">
-      {!user && (
-        <section className="hero glass-panel">
-          <h1>Your life in film</h1>
-          <p>Track films you've watched, save those you want to see, and discover what your friends are watching.</p>
-          <div style={{display:'flex', gap:'12px', justifyContent:'center'}}>
-            <Link to="/register" className="btn btn-primary">Get Started</Link>
-            <Link to="/login" className="btn btn-secondary">Sign In</Link>
-          </div>
-        </section>
-      )}
-
-      {user && (
-        <section style={{marginBottom: '40px'}}>
-          <h2 className="section-title">Activity from friends</h2>
-          {feed.length > 0 ? (
-            <div style={{display:'flex', flexDirection:'column'}}>
-              {feed.map((activity, idx) => (
-                <ActivityItem key={activity._id || idx} activity={activity} />
-              ))}
-            </div>
-          ) : (
-            <div className="glass-panel" style={{padding:'40px', textAlign:'center'}}>
-               <p style={{color:'var(--text-secondary)'}}>No recent activity. Try finding some users to follow!</p>
-               <Link to="/members" style={{marginTop:'12px', display:'inline-block'}}>Browse Members</Link>
-            </div>
-          )}
-        </section>
-      )}
-
-      <section>
-        <h2 className="section-title">Trending this week</h2>
-        {trending.length > 0 ? (
-          <div className="poster-grid">
-            {trending.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
-          </div>
-        ) : (
-          <div style={{padding:'40px', textAlign:'center', color:'var(--text-secondary)'}}>
-             <span>Loading trending films...</span>
-          </div>
-        )}
+      <section className="hero">
+        <h1>FILMBOX</h1>
+        <p>Everything you love about pop culture — movies, TV, and soon books, comics, games, and more.</p>
       </section>
+
+      {error && (
+        <div className="glass-panel lists-empty">
+          <p>{error}</p>
+          <button type="button" className="btn" onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      )}
+
+      <div className="home-columns">
+        <div>
+          <section>
+            <h2 className="section-title">Trending Movies</h2>
+            {movies.length > 0 ? (
+              <div className="poster-grid">
+                {movies.map((movie) => (
+                  <MovieCard key={movie.id} movie={movie} />
+                ))}
+              </div>
+            ) : (
+              <p className="page-empty">Loading movies...</p>
+            )}
+          </section>
+
+          <section style={{ marginTop: '28px' }}>
+            <h2 className="section-title">Trending TV</h2>
+            {shows.length > 0 ? (
+              <div className="poster-grid">
+                {shows.map((show) => (
+                  <MovieCard key={show.id} movie={{ ...show, title: show.name }} to={`/tv/${show.id}`} />
+                ))}
+              </div>
+            ) : (
+              <p className="page-empty">No TV results yet.</p>
+            )}
+          </section>
+        </div>
+
+        <aside>
+          <section>
+            <h2 className="section-title">Popular Reviews</h2>
+            {reviews.length > 0 ? (
+              reviews.map((review) => (
+                <div key={review._id} className="content-row" style={{ display: 'block' }}>
+                  <Link to={`/profile/${review.userId?.username}`}>{review.userId?.username}</Link>
+                  {' '}★ {review.rating}/5
+                  {review.movieId && (
+                    <>
+                      {' · '}
+                      <Link to={`/movies/${review.movieId}`}>film</Link>
+                    </>
+                  )}
+                  {review.reviewText && <p style={{ margin: '4px 0 0' }}>{review.reviewText.slice(0, 140)}</p>}
+                </div>
+              ))
+            ) : (
+              <p>No reviews yet.</p>
+            )}
+          </section>
+
+          <section style={{ marginTop: '28px' }}>
+            <h2 className="section-title">Community Activity</h2>
+            {activity.length > 0 ? (
+              activity.slice(0, 8).map((item) => (
+                <FriendActivityItem key={item._id} activity={item} />
+              ))
+            ) : (
+              <p>No recent activity.</p>
+            )}
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

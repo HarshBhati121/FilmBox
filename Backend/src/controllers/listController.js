@@ -13,7 +13,9 @@ export const getMyLists = async (req, res) => {
 export const getUserLists = async (req, res) => {
   try {
     const { userId } = req.params;
-    const lists = await List.find({ userId, isPublic: true }).sort("-createdAt");
+    const lists = await List.find({ userId, isPublic: true })
+      .sort("-createdAt")
+      .populate("userId", "username avatar");
     res.json(lists);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -13,39 +13,33 @@ export default function Header() {
 
   return (
     <header className="site-header">
-      <Link to="/" className="logo">
-        Film<span className="logo-accent">box</span>
-      </Link>
-      
-      <div style={{flex: 1, maxWidth: '400px', display: 'flex', justifyContent: 'center'}}>
+      <nav className="nav-links">
+        <Link to="/" className="logo">FILMBOX</Link>
+        <Link to="/films">Movies</Link>
+        <Link to="/tv">TV</Link>
+        <Link to="/explore">Explore</Link>
+        <Link to="/lists">Lists</Link>
+        <Link to="/members">Members</Link>
+        {user && <Link to="/friends">Friends</Link>}
+      </nav>
+
+      <div style={{ flex: 1, maxWidth: '280px' }}>
         <SearchBar />
       </div>
 
       <nav className="nav-links">
-        <Link to="/films">Films</Link>
-        <Link to="/lists">Lists</Link>
-        <Link to="/members">Members</Link>
-        
         {user ? (
-          <div style={{display:'flex', alignItems:'center', gap:'16px', marginLeft:'12px', paddingLeft:'16px', borderLeft:'1px solid var(--glass-border)'}}>
-            <Link to={`/profile/${user.username}`} style={{display:'flex', alignItems:'center', gap:'8px', color:'var(--text-primary)'}}>
-              <img 
-                src={user.avatar || "https://api.dicebear.com/7.x/avataaars/svg"} 
-                alt={user.username} 
-              />
-              <span>{user.username}</span>
-            </Link>
-            <button type="button" onClick={handleLogout} style={{background:'none', border:'none', color:'var(--text-secondary)', cursor:'pointer'}}>
+          <>
+            <Link to={`/profile/${user.username}`}>{user.username}</Link>
+            <button type="button" onClick={handleLogout} className="btn btn-secondary">
               Sign out
             </button>
-          </div>
+          </>
         ) : (
-          <div style={{display:'flex', alignItems:'center', gap:'12px', marginLeft:'12px', paddingLeft:'16px', borderLeft:'1px solid var(--glass-border)'}}>
-            <Link to="/login" style={{color:'var(--text-secondary)'}}>Sign in</Link>
-            <Link to="/register" className="btn btn-primary" style={{padding:'8px 16px', fontSize:'13px'}}>
-              Create Account
-            </Link>
-          </div>
+          <>
+            <Link to="/login">Sign in</Link>
+            <Link to="/register">Register</Link>
+          </>
         )}
       </nav>
     </header>

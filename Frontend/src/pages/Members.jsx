@@ -8,31 +8,41 @@ export default function Members() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
-    const fetchUsers = async () => {
+    const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await userApi.search(query || 'a');
+        const res = await userApi.search(trimmed);
         if (isMounted) setUsers(res || []);
       } catch (err) {
         console.error(err);
+        if (isMounted) setUsers([]);
       } finally {
         if (isMounted) setLoading(false);
       }
+    }, 300);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
     };
-    
-    fetchUsers();
-    return () => { isMounted = false; };
   }, [query]);
 
   return (
-    <div className="container page-wrapper" style={{maxWidth:'800px'}}>
+    <div className="container page-wrapper members-page">
       <h1 className="section-title">Members</h1>
-      
-      <div style={{marginBottom:'32px'}}>
-        <input 
-          type="text" 
-          placeholder="Search for members by username..." 
+
+      <div className="members-search">
+        <input
+          type="text"
+          placeholder="Search for members by username..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="form-control"
@@ -40,14 +50,16 @@ export default function Members() {
       </div>
 
       {loading ? (
-        <div style={{padding:'40px', color:'var(--text-secondary)'}}>Searching members...</div>
+        <div className="page-loading">Searching members...</div>
+      ) : !query.trim() ? (
+        <div className="members-empty">Search by username to find members.</div>
       ) : (
-        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
-          {users.map(u => (
+        <div className="members-grid">
+          {users.map((u) => (
             <UserCard key={u._id} user={u} />
           ))}
           {users.length === 0 && (
-            <div style={{padding:'40px', color:'var(--text-secondary)', fontStyle:'italic', gridColumn:'1 / -1'}}>No members found.</div>
+            <div className="members-empty">No members found.</div>
           )}
         </div>
       )}

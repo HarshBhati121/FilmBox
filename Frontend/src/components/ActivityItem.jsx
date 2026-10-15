@@ -1,31 +1,62 @@
 import { Link } from 'react-router-dom';
+import { useAvatarUrl } from '../hooks/useAvatarUrl';
+
+const ACTIVITY_LABELS = {
+  reviewed: 'reviewed',
+  rated: 'rated',
+  watchlisted: 'added to watchlist',
+  watched: 'watched',
+  followed: 'followed',
+  listed: 'created a list',
+};
 
 export default function ActivityItem({ activity }) {
+  const avatarUrl = useAvatarUrl(activity.userId);
+  const label = ACTIVITY_LABELS[activity.type] || activity.type;
+
   return (
-    <div className="glass-panel" style={{padding:'20px', marginBottom:'12px', display:'flex', gap:'16px', alignItems:'flex-start'}}>
-      <Link to={`/profile/${activity.userId?.username}`} style={{flexShrink:0}}>
-        <img 
-          src={activity.userId?.avatar || "https://api.dicebear.com/7.x/avataaars/svg"} 
+    <div className="glass-panel activity-card">
+      <Link to={`/profile/${activity.userId?.username}`} className="activity-avatar-link">
+        <img
+          src={avatarUrl}
           alt={activity.userId?.username}
-          style={{width:'48px', height:'48px', borderRadius:'50%', border:'2px solid var(--glass-border)'}}
+          className="activity-avatar"
         />
       </Link>
-      
-      <div style={{flex:1}}>
-        <div style={{marginBottom:'8px'}}>
-          <Link to={`/profile/${activity.userId?.username}`} style={{fontWeight:'bold', color:'var(--text-primary)'}}>
+
+      <div className="activity-body">
+        <div className="activity-summary">
+          <Link to={`/profile/${activity.userId?.username}`} className="activity-username">
             {activity.userId?.username}
           </Link>
-          <span style={{color:'var(--text-secondary)', margin:'0 6px'}}>{activity.type === 'review' ? 'reviewed' : 'watched'}</span>
-          <strong style={{color:'var(--text-primary)'}}>{activity.targetTitle || 'a film'}</strong>
-          <span style={{color:'var(--text-secondary)', fontSize:'12px', marginLeft:'12px'}}>
+          <span className="activity-action">{label}</span>
+
+          {activity.type === 'followed' && activity.targetUserId && (
+            <Link to={`/profile/${activity.targetUserId.username}`} className="activity-target">
+              {activity.targetUserId.username}
+            </Link>
+          )}
+
+          {activity.movieId && (
+            <Link to={`/movies/${activity.movieId}`} className="activity-target">
+              a film
+            </Link>
+          )}
+
+          {activity.listId && (
+            <Link to={`/lists/${activity.listId._id || activity.listId}`} className="activity-target">
+              {activity.listId.name || 'a list'}
+            </Link>
+          )}
+
+          <span className="activity-date">
             {new Date(activity.createdAt).toLocaleDateString()}
           </span>
         </div>
-        
+
         {activity.meta && (
-          <div style={{background:'var(--bg-tertiary)', padding:'12px 16px', borderRadius:'8px', borderLeft:'3px solid var(--accent-color)', marginTop:'8px'}}>
-            <p style={{color:'var(--text-secondary)', fontSize:'14px', margin:0}}>{activity.meta}</p>
+          <div className="activity-meta">
+            <p>{activity.type === 'rated' ? `★ ${activity.meta}/5` : activity.meta}</p>
           </div>
         )}
       </div>

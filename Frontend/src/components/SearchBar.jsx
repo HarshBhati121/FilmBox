@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search } from 'lucide-react';
 import { useSearch } from '../hooks/useSearch';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +8,7 @@ export default function SearchBar() {
   const { results, loading } = useSearch(query, 'movie', 400);
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
+  const IMAGE_BASE = import.meta.env.VITE_TMDB_IMAGE_BASE || 'https://image.tmdb.org/t/p/w200';
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -20,65 +20,74 @@ export default function SearchBar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = (movieId) => {
+  const goToSearch = () => {
+    if (!query.trim()) return;
     setShowResults(false);
-    setQuery('');
-    navigate(`/movies/${movieId}`);
+    navigate(`/search?q=${encodeURIComponent(query.trim())}`);
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full max-w-sm">
-      <div className="relative">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setShowResults(true);
-          }}
-          onFocus={() => setShowResults(true)}
-          placeholder="Search films..."
-          className="w-full bg-gray-800 border border-gray-600 text-white text-sm rounded-full focus:ring-green-500 focus:border-green-500 block pl-10 p-2 transition-all placeholder-gray-400"
-        />
-        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <Search size={16} className="text-gray-400" />
-        </div>
-      </div>
+    <form
+      ref={wrapperRef}
+      className="search-bar"
+      onSubmit={(e) => {
+        e.preventDefault();
+        goToSearch();
+      }}
+    >
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setShowResults(true);
+        }}
+        onFocus={() => setShowResults(true)}
+        placeholder="Search FilmBox"
+        className="form-control search-input"
+        aria-label="Search FilmBox"
+      />
 
-      {showResults && (query.length > 0) && (
-        <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl overflow-hidden max-h-80 overflow-y-auto">
+      {showResults && query.length > 0 && (
+        <div className="search-results">
           {loading ? (
-            <div className="p-4 text-center text-sm text-gray-400">Loading...</div>
+            <div className="search-result-empty">Searching...</div>
           ) : results.length > 0 ? (
-            <ul className="divide-y divide-gray-700">
-              {results.slice(0, 5).map(movie => (
-                <li key={movie.id}>
-                  <button
-                    onClick={() => handleSelect(movie.id)}
-                    className="w-full text-left p-3 hover:bg-gray-700 flex items-center gap-3 transition-colors"
-                  >
-                    {movie.poster_path ? (
-                      <img 
-                        src={`${import.meta.env.VITE_TMDB_IMAGE_BASE || 'https://image.tmdb.org/t/p/w200'}${movie.poster_path}`} 
-                        alt={movie.title} 
-                        className="w-8 h-12 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="w-8 h-12 bg-gray-600 rounded"></div>
-                    )}
-                    <div>
-                      <h4 className="font-medium text-white text-sm truncate max-w-[200px]">{movie.title}</h4>
-                      <p className="text-xs text-gray-400">{movie.release_date ? movie.release_date.split('-')[0] : 'N/A'}</p>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="search-result-list">
+                {results.slice(0, 5).map((movie) => (
+                  <li key={movie.id}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowResults(false);
+                        setQuery('');
+                        navigate(`/movies/${movie.id}`);
+                      }}
+                      className="search-result-item"
+                    >
+                      {movie.poster_path ? (
+                        <img src={`${IMAGE_BASE}${movie.poster_path}`} alt="" className="search-result-poster" />
+                      ) : (
+                        <div className="search-result-poster search-result-poster--empty" />
+                      )}
+                      <div className="search-result-info">
+                        <h4>{movie.title}</h4>
+                        <p>{movie.release_date ? movie.release_date.split('-')[0] : 'N/A'}</p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button type="button" onClick={goToSearch} className="search-view-all">
+                All results for "{query}"
+              </button>
+            </>
           ) : (
-            <div className="p-4 text-center text-sm text-gray-400">No results found</div>
+            <div className="search-result-empty">No results found</div>
           )}
         </div>
       )}
-    </div>
+    </form>
   );
 }
