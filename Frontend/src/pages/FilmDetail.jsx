@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useMovie } from '../hooks/useMovie';
-import { movieApi, reviewApi } from '../api/client';
+import { reviewApi, userApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import WatchlistButton from '../components/WatchlistButton';
 import AddToListButton from '../components/AddToListButton';
@@ -13,13 +13,18 @@ import toast from 'react-hot-toast';
 export default function FilmDetail() {
   const { id } = useParams();
   const { movie, loading, error } = useMovie(id);
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   
   const [reviews, setReviews] = useState([]);
   const [similar, setSimilar] = useState([]);
   const [myRating, setMyRating] = useState(0);
   const [myReview, setMyReview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTrailer, setShowTrailer] = useState(false);
+
+  const trailer = movie?.videos?.results?.find(v => v.type === 'Trailer') || movie?.videos?.results?.[0];
+  const isFavorite = user?.favoriteFilms?.includes(Number(id));
+  const watchProviders = movie?.['watch/providers']?.results?.US?.flatrate || [];
 
   useEffect(() => {
     if (!id) return;
@@ -34,6 +39,30 @@ export default function FilmDetail() {
     fetchReviews();
     movieApi.similar(id).then((data) => setSimilar((data.results || []).slice(0, 8))).catch(() => {});
   }, [id]);
+
+  const toggleFavorite = async () => {
+    if (!user) return toast.error('You must be logged in to set favorite films');
+
+    let newFavorites = [...(user.favoriteFilms || [])];
+    const numId = Number(id);
+
+    if (isFavorite) {
+      newFavorites = newFavorites.filter(fid => fid !== numId);
+    } else {
+      if (newFavorites.length >= 4) {
+        return toast.error('You can only have up to 4 favorite films. Please remove one first.');
+      }
+      newFavorites.push(numId);
+    }
+
+    try {
+      const updatedUser = await userApi.updateMe({ favoriteFilms: newFavorites });
+      setUser(updatedUser);
+      toast.success(isFavorite ? 'Removed from favorites' : 'Added to Top 4 favorites!');
+    } catch (err) {
+      toast.error('Failed to update favorites: ' + err.message);
+    }
+  };
 
   if (loading) return <div style={{textAlign:'center', padding:'80px', color:'var(--text-secondary)'}}>Loading film details...</div>;
   if (error || !movie) return <div style={{textAlign:'center', padding:'80px', color:'var(--red)'}}>{error || 'Film not found'}</div>;
@@ -59,6 +88,8 @@ export default function FilmDetail() {
     }
   };
 
+  const director = movie.credits?.crew?.find(c => c.job === 'Director');
+
   return (
     <div className="container page-wrapper">
       <div className="film-detail-layout">
@@ -72,14 +103,24 @@ export default function FilmDetail() {
             
             <div className="glass-panel" style={{marginTop:'24px', padding:'20px'}}>
               <WatchlistButton movieId={movie.id} />
-              <div style={{marginTop:'12px'}}>
-                <AddToListButton movieId={movie.id} />
-              </div>
               
-              <div style={{marginTop:'16px', paddingTop:'16px', borderTop:'1px solid var(--glass-border)'}}>
-                <p style={{fontSize:'14px', color:'var(--text-secondary)', marginBottom:'8px'}}>Rate this film</p>
-                <StarRating rating={myRating} setRating={setMyRating} />
-              </div>
+              <button 
+                onClick={toggleFavorite}
+                className={`btn ${isFavorite ? 'btn-primary' : 'btn-secondary'}`} 
+                style={{width: '100%', marginTop: '12px'}}
+              >
+                {isFavorite ? '★ In Top 4 Favorites' : '☆ Add to Top 4'}
+              </button>
+
+              {trailer && (
+                <button 
+                  onClick={() => setShowTrailer(true)}
+                  className="btn btn-secondary" 
+                  style={{width: '100%', marginTop: '12px'}}
+                >
+                  ▶ Play Trailer
+                </button>
+              )}
             </div>
           </div>
 
@@ -90,9 +131,11 @@ export default function FilmDetail() {
             </h1>
             
             <p style={{color:'var(--text-secondary)', marginBottom:'24px', fontSize:'15px'}}>
-              Directed by <span style={{color:'var(--text-primary)'}}>{
-                movie.credits?.crew?.find(c => c.job === 'Director')?.name || 'Unknown'
-              }</span>
+              Directed by {director ? (
+                <Link to={`/person/${director.id}`} style={{color:'var(--text-primary)', fontWeight: 'bold'}}>
+                  {director.name}
+                </Link>
+              ) : <span style={{color:'var(--text-primary)'}}>Unknown</span>}
             </p>
 
             <div className="film-overview">
@@ -114,6 +157,49 @@ export default function FilmDetail() {
                 </div>
               )}
             </div>
+
+            {/* Watch Providers Section */}
+            {watchProviders.length > 0 && (
+              <div style={{marginBottom:'32px'}} className="glass-panel">
+                <div style={{padding:'20px', borderBottom:'1px solid var(--glass-border)'}}>
+                  <h3 style={{margin:0, fontSize:'16px', color:'var(--text-secondary)', textTransform:'uppercase', letterSpacing:'1px'}}>Where to Watch</h3>
+                </div>
+                <div style={{padding:'20px', display:'flex', gap:'16px', overflowX:'auto'}} className="hide-scrollbar">
+                  {watchProviders.map(provider => (
+                    <div key={provider.provider_id} style={{textAlign:'center', minWidth:'60px'}}>
+                      <img 
+                        src={`${IMAGE_BASE}${provider.logo_path}`} 
+                        alt={provider.provider_name}
+                        style={{width:'60px', height:'60px', borderRadius:'12px', marginBottom:'8px'}}
+                      />
+                      <div style={{fontSize:'12px', color:'var(--text-secondary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'80px'}}>
+                        {provider.provider_name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Cast Section */}
+            {movie.credits?.cast?.length > 0 && (
+              <div style={{marginTop:'48px'}}>
+                <h2 style={{fontSize:'20px', fontWeight:'700', marginBottom:'16px', color:'var(--text-primary)'}}>Cast</h2>
+                <div style={{display:'flex', gap:'16px', overflowX:'auto', paddingBottom:'16px'}} className="hide-scrollbar">
+                  {movie.credits.cast.slice(0, 10).map(actor => (
+                    <Link key={actor.id} to={`/person/${actor.id}`} style={{minWidth:'120px', textAlign:'center', display:'block'}}>
+                      <img 
+                        src={actor.profile_path ? `${IMAGE_BASE}${actor.profile_path}` : 'https://via.placeholder.com/150x225?text=No+Image'} 
+                        alt={actor.name}
+                        style={{width:'120px', height:'180px', objectFit:'cover', borderRadius:'8px', marginBottom:'8px'}}
+                      />
+                      <div style={{fontSize:'14px', fontWeight:'600', color:'var(--text-primary)'}}>{actor.name}</div>
+                      <div style={{fontSize:'12px', color:'var(--text-secondary)'}}>{actor.character}</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Reviews Section */}
             <div style={{marginTop:'48px', paddingTop:'32px', borderTop:'1px solid var(--glass-border)'}}>
@@ -151,19 +237,39 @@ export default function FilmDetail() {
               </div>
             </div>
 
-            {similar.length > 0 && (
-              <div style={{ marginTop: '24px' }}>
-                <h2 className="section-title">Similar Movies</h2>
-                <div className="poster-grid">
-                  {similar.map((item) => (
-                    <MovieCard key={item.id} movie={item} />
-                  ))}
-                </div>
-              </div>
-            )}
-
           </div>
         </div>
+      </div>
+
+      {/* Trailer Modal */}
+      {showTrailer && trailer && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.9)', zIndex: 9999,
+          display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }}>
+          <div style={{position: 'relative', width: '90%', maxWidth: '1000px', aspectRatio: '16/9'}}>
+            <button 
+              onClick={() => setShowTrailer(false)}
+              style={{
+                position: 'absolute', top: '-40px', right: 0,
+                background: 'none', border: 'none', color: '#fff', fontSize: '24px', cursor: 'pointer'
+              }}
+            >
+              ✕ Close
+            </button>
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

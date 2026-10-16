@@ -138,3 +138,30 @@ export const updateMe = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getMatches = async (req, res) => {
+  try {
+    const me = await User.findById(req.userId);
+    if (!me || !me.favoriteFilms || me.favoriteFilms.length === 0) {
+      return res.json([]);
+    }
+    const myFavs = me.favoriteFilms;
+    
+    // Find users who share at least 1 favorite film
+    const matchedUsers = await User.find({
+      _id: { $ne: me._id },
+      favoriteFilms: { $in: myFavs }
+    }).select("username avatar bio favoriteFilms followers following");
+
+    // Sort by match count
+    matchedUsers.sort((a, b) => {
+      const aMatches = a.favoriteFilms.filter(f => myFavs.includes(f)).length;
+      const bMatches = b.favoriteFilms.filter(f => myFavs.includes(f)).length;
+      return bMatches - aMatches;
+    });
+
+    res.json(matchedUsers.slice(0, 8)); // Return top 8 matches
+  } catch(error) {
+     res.status(500).json({ message: error.message });
+  }
+};

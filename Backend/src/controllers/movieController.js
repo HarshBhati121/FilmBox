@@ -22,11 +22,29 @@ export const getTrendingMovies = async (req, res) => {
   }
 };
 
+export const getTopRatedMovies = async (req, res) => {
+  try {
+    const data = await tmdbGet("/movie/top_rated");
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPopularMovies = async (req, res) => {
+  try {
+    const data = await tmdbGet("/movie/popular");
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const getMovieDetails = async (req, res) => {
   try {
     const { id } = req.params;
     const data = await tmdbGet(`/movie/${id}`, {
-      append_to_response: "credits,videos"
+      append_to_response: "credits,videos,watch/providers"
     });
     res.json(data);
   } catch (error) {
@@ -91,6 +109,18 @@ export const getMoviesByGenre = async (req, res) => {
   try {
     const { id } = req.params;
     const data = await tmdbGet("/discover/movie", { with_genres: id });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPerson = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await tmdbGet(`/person/${id}`, {
+      append_to_response: "movie_credits"
+    });
     res.json(data);
   } catch (error) {
     res.status(500).json({ message: error.message });

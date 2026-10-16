@@ -40,6 +40,7 @@ function App() {
             <Route path="search" element={<SearchPage />} />
             <Route path="explore" element={<Explore />} />
             <Route path="movies/:id" element={<FilmDetail />} />
+            <Route path="person/:id" element={<Person />} />
             <Route path="lists" element={<Lists />} />
             <Route path="lists/:id" element={<ListDetail />} />
             <Route path="members" element={<Members />} />

@@ -2,6 +2,8 @@ import express from "express";
 import {
   searchMovies,
   getTrendingMovies,
+  getTopRatedMovies,
+  getPopularMovies,
   getMovieDetails,
   getMovieCredits,
   getMoviesByGenre,
@@ -15,6 +17,9 @@ const router = express.Router();
 
 router.get("/search", searchMovies);
 router.get("/trending", getTrendingMovies);
+router.get("/top_rated", getTopRatedMovies);
+router.get("/popular", getPopularMovies);
+router.get("/person/:id", getPerson);
 router.get("/genre/:id", getMoviesByGenre);
 router.get("/:id/similar", getSimilarMovies);
 router.get("/:id", getMovieDetails);

@@ -6,12 +6,14 @@ import {
   getProfile,
   searchUsers,
   followUser,
-  unfollowUser
+  unfollowUser,
+  getMatches
 } from "../controllers/userController.js";
 
 const router = express.Router();
 
 router.get("/search", searchUsers);
+router.get("/matches", authMiddleware, getMatches);
 router.get("/profile/:username", getProfile);
 
 router.get("/me", authMiddleware, getMe);

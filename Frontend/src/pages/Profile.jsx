@@ -10,8 +10,8 @@ import ListCard from '../components/ListCard';
 
 export default function Profile() {
   const { username } = useParams();
-  const { user: authUser } = useAuth();
-
+  const { user: authUser, setUser: setAuthUser } = useAuth();
+  
   const [user, setUser] = useState(null);
   const [activities, setActivities] = useState([]);
   const [lists, setLists] = useState([]);
@@ -63,32 +63,63 @@ export default function Profile() {
 
     fetchProfile();
     return () => { isMounted = false; };
-  }, [username, authUser]);
+  }, [username, authUser?.username]);
 
-  if (loading) return <div className="page-loading">Loading profile...</div>;
-  if (!user) return <div className="page-loading">User not found</div>;
+  const isFollowing = authUser?.following?.includes(user?._id);
+
+  const toggleFollow = async () => {
+    if (!authUser) return;
+    try {
+      if (isFollowing) {
+        const updatedAuthUser = await userApi.unfollow(user._id);
+        setAuthUser(updatedAuthUser);
+        setUser(prev => ({ ...prev, followers: prev.followers.filter(id => id !== authUser._id) }));
+      } else {
+        const updatedAuthUser = await userApi.follow(user._id);
+        setAuthUser(updatedAuthUser);
+        setUser(prev => ({ ...prev, followers: [...(prev.followers || []), authUser._id] }));
+      }
+    } catch (err) {
+      console.error('Follow toggle failed', err);
+    }
+  };
+
+  if (loading) return <div className="text-center p-20 text-gray-400">Loading profile...</div>;
+  if (!user) return <div className="text-center p-20 text-gray-400">User not found</div>;
 
   return (
-    <div className="container page-wrapper" style={{ maxWidth: '900px' }}>
-      <div className="profile-header glass-panel">
-        <div className="profile-bg" />
-        <img src={avatarUrl} alt={user.username} className="profile-avatar" />
-        <div className="profile-info">
-          <div className="profile-name-row">
-            <h1>{user.username}</h1>
-            {!isOwnProfile && (
-              <FollowButton userId={user._id} username={user.username} onChange={refreshProfile} />
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="bg-gray-800 rounded-2xl p-8 border border-gray-700 flex flex-col md:flex-row items-center gap-8 mb-12 shadow-2xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-blue-500/10 opacity-50 pointer-events-none" />
+        
+        <img 
+          src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`} 
+          alt={user.username}
+          className="w-32 h-32 rounded-full border-4 border-gray-700 relative z-10 bg-gray-900"
+        />
+        
+        <div className="text-center md:text-left relative z-10 flex-1">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-2">{user.username}</h1>
+              <p className="text-gray-400">{user.email}</p>
+            </div>
+            
+            {authUser && authUser._id !== user._id && (
+              <button 
+                onClick={toggleFollow}
+                className={`mt-4 md:mt-0 px-6 py-2 rounded-full font-bold transition-all ${isFollowing ? 'bg-gray-700 text-white hover:bg-red-500 hover:text-white border border-gray-600' : 'bg-green-500 text-black hover:bg-green-400'}`}
+              >
+                {isFollowing ? 'Unfollow' : 'Follow'}
+              </button>
             )}
           </div>
-          {user.bio && (
-            <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic', marginBottom: '8px' }}>
-              "{user.bio}"
-            </p>
-          )}
-          <div className="profile-stats">
-            <div className="stat-box">
-              <span className="stat-num">{user.followers?.length || 0}</span>
-              <span className="stat-label">Followers</span>
+          {user.bio && <p className="text-gray-300 italic mb-4">"{user.bio}"</p>}
+          
+          <div className="flex gap-6 justify-center md:justify-start">
+            <div className="text-center">
+              <span className="block font-bold text-white text-xl">{user.followers?.length || 0}</span>
+              <span className="text-xs text-gray-500 uppercase tracking-widest">Followers</span>
             </div>
             <div className="stat-box">
               <span className="stat-num">{user.following?.length || 0}</span>

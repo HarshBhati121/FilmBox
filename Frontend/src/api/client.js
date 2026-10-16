@@ -1,5 +1,5 @@
 // Vite proxy forwards /api to http://localhost:5000 — no CORS issues
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = 'https://filmbox-backend-r7rt.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('token');
@@ -47,7 +47,8 @@ export const userApi = {
   getMe: () => api('/user/me'),
   updateMe: (body) => api('/user/me', { method: 'PUT', body: JSON.stringify(body) }),
   getProfile: (username) => api(`/user/profile/${username}`),
-  search: (query) => api(`/user/search?q=${encodeURIComponent(query)}`),
+  search: (query) => api(`/user/search?q=${query}`),
+  getMatches: () => api('/user/matches'),
   follow: (id) => api(`/user/${id}/follow`, { method: 'POST' }),
   unfollow: (id) => api(`/user/${id}/unfollow`, { method: 'POST' }),
 };
@@ -55,14 +56,11 @@ export const userApi = {
 export const movieApi = {
   search: (query, page = 1) => api(`/movies/search?query=${encodeURIComponent(query)}&page=${page}`),
   trending: () => api('/movies/trending'),
+  topRated: () => api('/movies/top_rated'),
+  popular: () => api('/movies/popular'),
+  getByGenre: (id, page = 1) => api(`/movies/genre/${id}?page=${page}`),
   getMovie: (id) => api(`/movies/${id}`),
-  similar: (id) => api(`/movies/${id}/similar`),
-};
-
-export const tvApi = {
-  search: (query, page = 1) => api(`/tv/search?query=${encodeURIComponent(query)}&page=${page}`),
-  trending: () => api('/tv/trending'),
-  get: (id) => api(`/tv/${id}`),
+  getPerson: (id) => api(`/movies/person/${id}`),
 };
 
 export const reviewApi = {

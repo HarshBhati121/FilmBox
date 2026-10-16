@@ -32,7 +32,9 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: "https://api.dicebear.com/7.x/avataaars/svg"
+      default: function() {
+        return `https://api.dicebear.com/7.x/avataaars/svg?seed=${this.username || 'default'}`;
+      }
     },
     followers: [{
       type: mongoose.Schema.Types.ObjectId,
