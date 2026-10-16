@@ -1,5 +1,5 @@
 // Vite proxy forwards /api to http://localhost:5000 — no CORS issues
-const API_BASE = 'https://filmbox-backend-r7rt.onrender.com/api';
+const API_BASE = 'https://filmbox-backend-r7rt.onrender.com';
 
 function getToken() {
   return localStorage.getItem('token');
