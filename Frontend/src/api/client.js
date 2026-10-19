@@ -1,5 +1,6 @@
-// Vite proxy forwards /api to http://localhost:5000 — no CORS issues
-const API_BASE = 'https://filmbox-backend-r7rt.onrender.com';
+// The Vite development server proxies /api to the local Express backend.
+// Set VITE_API_URL to the full API URL when deploying the frontend.
+const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 function getToken() {
   return localStorage.getItem('token');
@@ -18,7 +19,7 @@ export async function api(endpoint, options = {}) {
   try {
     res = await fetch(url, { ...options, headers });
   } catch (err) {
-    throw new Error('Cannot reach server. Is the backend running on port 5000?');
+    throw new Error('Unable to reach the FilmBox API. Check your connection and try again.');
   }
 
   const data = await res.json().catch(() => ({}));
@@ -60,7 +61,14 @@ export const movieApi = {
   popular: () => api('/movies/popular'),
   getByGenre: (id, page = 1) => api(`/movies/genre/${id}?page=${page}`),
   getMovie: (id) => api(`/movies/${id}`),
+  similar: (id) => api(`/movies/${id}/similar`),
   getPerson: (id) => api(`/movies/person/${id}`),
+};
+
+export const tvApi = {
+  search: (query, page = 1) => api(`/tv/search?query=${encodeURIComponent(query)}&page=${page}`),
+  trending: () => api('/tv/trending'),
+  get: (id) => api(`/tv/${id}`),
 };
 
 export const reviewApi = {

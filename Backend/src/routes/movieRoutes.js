@@ -6,6 +6,7 @@ import {
   getPopularMovies,
   getMovieDetails,
   getMovieCredits,
+  getPerson,
   getMoviesByGenre,
   getSimilarMovies,
   searchTv,

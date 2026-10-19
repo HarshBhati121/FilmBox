@@ -38,21 +38,30 @@ TMDB_API_KEY=your_tmdb_key
 ### Frontend (`Frontend/.env`) optional
 
 ```
-VITE_API_BASE=/api
+VITE_API_URL=https://your-backend-url/api
 VITE_TMDB_IMAGE_BASE=https://image.tmdb.org/t/p/w500
 ```
 
-Never put provider secrets in the frontend. Image base URLs are public.
+For local development, leave `VITE_API_URL` unset: the frontend uses `/api` and Vite proxies it to `http://localhost:5000`. Never put provider secrets in the frontend. Image base URLs are public.
 
 ## Commands
 
 ```bash
-cd Backend && npm install && npm run dev
-cd Frontend && npm install && npm run dev
+# Terminal 1
+cd Backend
+npm install
+npm run dev
+
+# Terminal 2
+cd Frontend
+npm install
+npm run dev
 ```
 
 Frontend: http://localhost:5173  
 Backend: http://localhost:5000
+
+On Windows, keep the project outside OneDrive if Node reports file-read or esbuild errors while starting; the frontend setup notes include a suggested local path.
 
 ## Adding a provider later
 

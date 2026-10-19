@@ -19,6 +19,7 @@ import SearchPage from './pages/Search';
 import Explore from './pages/Explore';
 import TvBrowse from './pages/TvBrowse';
 import TvDetail from './pages/TvDetail';
+import Person from './pages/Person';
 
 function App() {
   useEffect(() => {

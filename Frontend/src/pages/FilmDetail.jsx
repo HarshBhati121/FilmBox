@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMovie } from '../hooks/useMovie';
-import { reviewApi, userApi } from '../api/client';
+import { movieApi, reviewApi, userApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import WatchlistButton from '../components/WatchlistButton';
 import AddToListButton from '../components/AddToListButton';
@@ -103,6 +103,15 @@ export default function FilmDetail() {
             
             <div className="glass-panel" style={{marginTop:'24px', padding:'20px'}}>
               <WatchlistButton movieId={movie.id} />
+
+              <div style={{marginTop:'12px'}}>
+                <AddToListButton movieId={movie.id} />
+              </div>
+
+              <div style={{marginTop:'16px', paddingTop:'16px', borderTop:'1px solid var(--glass-border)'}}>
+                <p style={{fontSize:'14px', color:'var(--text-secondary)', marginBottom:'8px'}}>Rate this film</p>
+                <StarRating rating={myRating} setRating={setMyRating} />
+              </div>
               
               <button 
                 onClick={toggleFavorite}
@@ -237,9 +246,19 @@ export default function FilmDetail() {
               </div>
             </div>
 
+            {similar.length > 0 && (
+              <div style={{ marginTop: '24px' }}>
+                <h2 className="section-title">Similar Movies</h2>
+                <div className="poster-grid">
+                  {similar.map((item) => (
+                    <MovieCard key={item.id} movie={item} />
+                  ))}
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
-      </div>
 
       {/* Trailer Modal */}
       {showTrailer && trailer && (

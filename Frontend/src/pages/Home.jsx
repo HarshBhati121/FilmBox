@@ -1,54 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { movieApi, tvApi, reviewApi, activityApi } from '../api/client';
-import MovieCard from '../components/MovieCard';
+import { activityApi, movieApi, reviewApi, tvApi } from '../api/client';
 import FriendActivityItem from '../components/FriendActivityItem';
+import MovieCard from '../components/MovieCard';
 
 export default function Home() {
-  const { user } = useAuth();
-  const [trending, setTrending] = useState([]);
-  const [topRated, setTopRated] = useState([]);
-  const [popular, setPopular] = useState([]);
-  const [feed, setFeed] = useState([]);
-  const [loadingTasks, setLoadingTasks] = useState(4); // Wait for trending, topRated, popular, feed
+  const [movies, setMovies] = useState([]);
+  const [shows, setShows] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let mounted = true;
 
     const load = async () => {
       try {
-        const [trendingData, topRatedData, popularData] = await Promise.all([
+        const [trendingMovies, trendingTv, recentReviews, recentActivity] = await Promise.all([
           movieApi.trending(),
-          movieApi.topRated(),
-          movieApi.popular()
+          tvApi.trending().catch(() => ({ results: [] })),
+          reviewApi.getRecent().catch(() => []),
+          activityApi.getRecent().catch(() => []),
         ]);
-        if (isMounted) {
-          setTrending(trendingData.results?.slice(0, 12) || []);
-          setTopRated(topRatedData.results?.slice(0, 12) || []);
-          setPopular(popularData.results?.slice(0, 10) || []);
-        }
+        if (!mounted) return;
+        setMovies(trendingMovies.results?.slice(0, 10) || []);
+        setShows(trendingTv.results?.slice(0, 10) || []);
+        setReviews(Array.isArray(recentReviews) ? recentReviews : []);
+        setActivity(Array.isArray(recentActivity) ? recentActivity : []);
       } catch (err) {
-        console.error('Failed to fetch movies', err);
-      } finally {
-        if (isMounted) setLoadingTasks(prev => prev - 3);
-      }
-
-      if (user) {
-        try {
-          const feedData = await activityApi.getFeed(1);
-          if (isMounted) setFeed(feedData.activity || []);
-        } catch (err) {
-          console.error('Failed to fetch feed', err);
-        } finally {
-          if (isMounted) setLoadingTasks(prev => prev - 1);
-        }
-      } else {
-        if (isMounted) setLoadingTasks(prev => prev - 1);
+        if (mounted) setError(err.message || 'Could not load homepage');
       }
     };
 
     load();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
@@ -110,67 +97,24 @@ export default function Home() {
                   )}
                   {review.reviewText && <p style={{ margin: '4px 0 0' }}>{review.reviewText.slice(0, 140)}</p>}
                 </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div style={{padding:'40px', textAlign:'center', color:'var(--text-secondary)'}}>
-             <span>Loading trending films...</span>
-          </div>
-        )}
-      </section>
+              ))
+            ) : (
+              <p>No reviews yet.</p>
+            )}
+          </section>
 
-      <section style={{ overflow: 'hidden', marginTop: '40px' }}>
-        <h2 className="section-title">Movies to watch at least once</h2>
-        {topRated.length > 0 ? (
-          <div className="marquee-container" style={{ animationDirection: 'reverse' }}>
-            <div className="marquee-content" style={{ animationDirection: 'reverse' }}>
-              {topRated.map((movie) => (
-                <div key={movie.id} className="carousel-item" style={{ minWidth: '150px' }}>
-                  <MovieCard movie={movie} />
-                </div>
-              ))}
-            </div>
-            <div className="marquee-content" aria-hidden="true" style={{ animationDirection: 'reverse' }}>
-              {topRated.map((movie) => (
-                <div key={`${movie.id}-dup`} className="carousel-item" style={{ minWidth: '150px' }}>
-                  <MovieCard movie={movie} />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div style={{padding:'40px', textAlign:'center', color:'var(--text-secondary)'}}>
-             <span>Loading...</span>
-          </div>
-        )}
-      </section>
-
-      <section style={{ overflow: 'hidden', marginTop: '40px' }}>
-        <h2 className="section-title">FilmBox's Top 10 Films</h2>
-        {popular.length > 0 ? (
-          <div className="marquee-container">
-            <div className="marquee-content">
-              {popular.map((movie) => (
-                <div key={movie.id} className="carousel-item" style={{ minWidth: '150px' }}>
-                  <MovieCard movie={movie} />
-                </div>
-              ))}
-            </div>
-            <div className="marquee-content" aria-hidden="true">
-              {popular.map((movie) => (
-                <div key={`${movie.id}-dup`} className="carousel-item" style={{ minWidth: '150px' }}>
-                  <MovieCard movie={movie} />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div style={{padding:'40px', textAlign:'center', color:'var(--text-secondary)'}}>
-             <span>Loading...</span>
-          </div>
-        )}
-      </section>
+          <section style={{ marginTop: '28px' }}>
+            <h2 className="section-title">Community Activity</h2>
+            {activity.length > 0 ? (
+              activity.slice(0, 8).map((item) => (
+                <FriendActivityItem key={item._id} activity={item} />
+              ))
+            ) : (
+              <p>No recent activity.</p>
+            )}
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }
