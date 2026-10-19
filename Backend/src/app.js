@@ -12,10 +12,20 @@ import tvRoutes from "./routes/tvRoutes.js";
 const app = express();
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://film-box-ruby.vercel.app"
-  ],
+  origin(origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "https://film-box-ruby.vercel.app",
+      ...(process.env.FRONTEND_URL || "")
+        .split(",")
+        .map((url) => url.trim())
+        .filter(Boolean)
+    ];
+    const isVercelPreview =
+      /^https:\/\/film-[a-z0-9]+-harshbhati-projects\.vercel\.app$/.test(origin || "");
+
+    callback(null, !origin || allowedOrigins.includes(origin) || isVercelPreview);
+  },
   credentials: true
 }));
 

@@ -33,7 +33,10 @@ PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 TMDB_API_KEY=your_tmdb_key
+FRONTEND_URL=https://your-vercel-domain.vercel.app
 ```
+
+`FRONTEND_URL` is optional; use it for your production frontend domain. Multiple origins can be comma-separated. Local development and this project's Vercel preview URLs are also allowed.
 
 ### Frontend (`Frontend/.env`) optional
 
