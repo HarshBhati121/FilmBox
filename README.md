@@ -71,3 +71,36 @@ On Windows, keep the project outside OneDrive if Node reports file-read or esbui
 1. Create `Backend/src/providers/<name>Provider.js` that returns normalized `{ type, provider, externalId, title, year, image, description }`.
 2. Register it in a content service.
 3. Wire `/api/search` and `/api/<type>/...` without changing list/review/social UIs.
+
+## Personalized recommendations
+
+The signed-in **For You** page asks for movie preferences, retrieves candidate movies and full movie facts from TMDB, then optionally asks Gemini to rank only those verified candidates. The Gemini response can supply ranking and explanations, but TMDB remains the source of movie IDs and factual metadata. If Gemini is unavailable or returns unusable output, the API ranks the TMDB results using the selected preferences.
+
+### Local setup
+
+Copy `Backend/.env.example` to `Backend/.env`, preserve your existing local values, and add a newly generated Gemini key:
+
+```text
+GEMINI_API_KEY=your_new_gemini_api_key
+```
+
+Do not put Gemini credentials in `Frontend/.env`, use a `VITE_` prefix, or commit the key. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`. The endpoint is `POST /api/recommendations`, requires the existing JWT authentication, and limits each user to five requests per 15 minutes. Results are cached in backend memory for 30 minutes per user and preference set; no questionnaire data is persisted to MongoDB.
+
+Run the feature locally using the existing app commands:
+
+```powershell
+cd Backend
+npm install
+npm test
+npm run dev
+```
+
+In a second terminal:
+
+```powershell
+cd Frontend
+npm install
+npm run dev
+```
+
+Sign in, open **For You**, complete the questionnaire, and verify that recommendations show either Gemini ranking or the TMDB fallback. The Gemini key must also be added as a backend environment variable in the deployed backend service before enabling the feature there. Deploy the backend and frontend changes together, verify the endpoint and UI on a preview deployment, then promote the preview to production.

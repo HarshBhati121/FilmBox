@@ -20,6 +20,7 @@ import Explore from './pages/Explore';
 import TvBrowse from './pages/TvBrowse';
 import TvDetail from './pages/TvDetail';
 import Person from './pages/Person';
+import Recommendations from './pages/Recommendations';
 
 function App() {
   useEffect(() => {
@@ -40,6 +41,7 @@ function App() {
             <Route path="tv/:id" element={<TvDetail />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="explore" element={<Explore />} />
+            <Route path="recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
             <Route path="movies/:id" element={<FilmDetail />} />
             <Route path="person/:id" element={<Person />} />
             <Route path="lists" element={<Lists />} />

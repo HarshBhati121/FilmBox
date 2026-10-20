@@ -8,6 +8,7 @@ import watchlistRoutes from "./routes/watchlistRoutes.js";
 import listRoutes from "./routes/listRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
 import tvRoutes from "./routes/tvRoutes.js";
+import recommendationRoutes from "./routes/recommendationRoutes.js";
 
 const app = express();
 
@@ -43,5 +44,6 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/watchlist", watchlistRoutes);
 app.use("/api/lists", listRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 
 export default app;

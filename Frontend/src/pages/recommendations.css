@@ -1,0 +1,84 @@
+.recommendations-page { max-width: 980px; }
+.recommendation-welcome { padding: 34px 0 28px; }
+.recommendation-eyebrow, .recommendation-step-label {
+  color: #003399; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; margin-bottom: 8px;
+}
+.recommendation-title { font-size: clamp(26px, 5vw, 40px); line-height: 1.1; max-width: 680px; }
+.recommendation-subtitle { color: var(--text-secondary); font-size: 15px; margin-top: 10px; max-width: 660px; }
+.recommendation-questionnaire { max-width: 780px; padding: 22px; border: 1px solid #ccc; background: #fff; }
+.recommendation-progress-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.recommendation-progress-heading h2 { font-size: 20px; }
+.recommendation-progress-heading > span { color: var(--text-secondary); font-size: 13px; }
+.recommendation-progress-track { height: 5px; margin: 14px 0 26px; background: #e5e5e5; }
+.recommendation-progress-track span { display: block; height: 100%; background: #003399; transition: width 180ms ease; }
+.recommendation-step-content { display: grid; gap: 24px; }
+.recommendation-fieldset { border: 0; min-width: 0; }
+.recommendation-fieldset legend { margin-bottom: 12px; font-weight: 700; }
+.recommendation-optional { margin-left: 8px; color: #666; font-size: 11px; font-weight: 400; }
+.recommendation-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.recommendation-chip { padding: 7px 11px; border: 1px solid #bbb; border-radius: 3px; color: #222; background: #fff; cursor: pointer; font: inherit; font-size: 13px; }
+.recommendation-chip:hover, .recommendation-chip.is-selected { color: #fff; background: #003399; border-color: #003399; }
+.recommendation-radio-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.recommendation-radio-card { display: flex; align-items: flex-start; gap: 9px; padding: 12px; border: 1px solid #ccc; cursor: pointer; }
+.recommendation-radio-card.is-selected { border-color: #003399; background: #f1f5ff; }
+.recommendation-radio-card input { margin-top: 4px; accent-color: #003399; }
+.recommendation-radio-card span { display: grid; gap: 2px; }
+.recommendation-radio-card small { color: #555; }
+.recommendation-rating-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.recommendation-rating-option { min-width: 74px; padding: 10px 12px; border: 1px solid #bbb; background: white; font: inherit; font-weight: 700; cursor: pointer; }
+.recommendation-rating-option span { font-size: 11px; font-weight: 400; color: #555; }
+.recommendation-rating-option.is-selected { border-color: #003399; background: #003399; color: #fff; }
+.recommendation-rating-option.is-selected span { color: #e2e9ff; }
+.recommendation-select-field, .recommendation-favorites-field { display: grid; gap: 7px; max-width: 520px; font-weight: 700; }
+.recommendation-select-field .form-control, .recommendation-favorites-field .form-control { min-height: 40px; }
+.recommendation-favorites-field p { color: #555; font-size: 13px; font-weight: 400; }
+.recommendation-navigation { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 28px; padding-top: 18px; border-top: 1px solid #ddd; }
+.recommendation-next { min-width: 130px; min-height: 36px; }
+.recommendation-final-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.recommendation-loading { margin-top: 14px; color: #444; }
+.recommendation-error { margin-top: 14px; color: #990000; }
+.recommendation-results-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 24px 0; }
+.recommendation-results-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.recommendation-filter-bar { display: flex; flex-wrap: wrap; gap: 12px; padding: 14px; margin: 8px 0 20px; border: 1px solid #ccc; background: #fff; }
+.recommendation-filter { display: grid; gap: 4px; min-width: 135px; color: #444; font-size: 12px; }
+.recommendation-filter .form-control { min-height: 34px; }
+.recommendation-list { display: grid; gap: 14px; }
+.recommendation-card { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 18px; padding: 14px; border: 1px solid #ccc; background: #fff; }
+.recommendation-poster { position: relative; align-self: start; }
+.recommendation-poster .movie-card { display: block; }
+.recommendation-match { position: absolute; top: 7px; left: 7px; padding: 4px 7px; color: #fff; background: #003399; font-size: 11px; font-weight: 700; }
+.recommendation-card-content { min-width: 0; }
+.recommendation-card-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+.recommendation-card-heading h2 { font-size: 19px; }
+.recommendation-card-heading > span { color: #555; }
+.recommendation-facts, .recommendation-tags { display: flex; flex-wrap: wrap; gap: 7px 12px; margin-top: 8px; color: #444; font-size: 12px; }
+.recommendation-tags { gap: 5px; }
+.recommendation-tags span { padding: 3px 7px; background: #eee; }
+.recommendation-overview { margin-top: 12px; color: #444; line-height: 1.5; }
+.recommendation-reason { margin-top: 12px; padding: 10px 12px; border-left: 3px solid #003399; background: #f4f6fb; }
+.recommendation-reason p { margin-top: 4px; color: #333; }
+.recommendation-reason p + p { color: #555; }
+.recommendation-card-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+.recommendation-card-actions .btn { text-decoration: none; }
+.recommendation-card-actions .btn:disabled { cursor: default; opacity: .72; }
+.recommendation-list-menu { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 9px; }
+.recommendation-list-menu button { padding: 5px 8px; border: 1px solid #bbb; background: #fff; cursor: pointer; }
+.recommendation-empty { padding: 30px 18px; border: 1px dashed #aaa; color: #555; text-align: center; }
+
+@media (max-width: 700px) {
+  .recommendation-welcome { padding-top: 22px; }
+  .recommendation-questionnaire { padding: 16px; }
+  .recommendation-results-header { align-items: flex-start; flex-direction: column; }
+  .recommendation-results-actions { justify-content: flex-start; }
+  .recommendation-card { grid-template-columns: 100px minmax(0, 1fr); gap: 12px; padding: 10px; }
+  .recommendation-card-heading h2 { font-size: 16px; }
+  .recommendation-filter { flex: 1 1 145px; }
+}
+
+@media (max-width: 460px) {
+  .recommendation-radio-list { grid-template-columns: 1fr; }
+  .recommendation-card { grid-template-columns: 82px minmax(0, 1fr); gap: 10px; }
+  .recommendation-card-actions .btn { flex: 1 1 auto; }
+  .recommendation-final-actions { justify-content: stretch; }
+  .recommendation-final-actions .btn { flex: 1 1 100%; }
+}

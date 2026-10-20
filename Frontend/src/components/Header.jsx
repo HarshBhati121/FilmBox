@@ -18,6 +18,7 @@ export default function Header() {
         <Link to="/films">Movies</Link>
         <Link to="/tv">TV</Link>
         <Link to="/explore">Explore</Link>
+        {user && <Link to="/recommendations">For You</Link>}
         <Link to="/lists">Lists</Link>
         <Link to="/members">Members</Link>
         {user && <Link to="/friends">Friends</Link>}

@@ -65,6 +65,13 @@ export const movieApi = {
   getPerson: (id) => api(`/movies/person/${id}`),
 };
 
+export const recommendationsApi = {
+  create: (preferences) => api('/recommendations', {
+    method: 'POST',
+    body: JSON.stringify(preferences),
+  }),
+};
+
 export const tvApi = {
   search: (query, page = 1) => api(`/tv/search?query=${encodeURIComponent(query)}&page=${page}`),
   trending: () => api('/tv/trending'),
