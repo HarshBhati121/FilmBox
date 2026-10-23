@@ -74,7 +74,7 @@ On Windows, keep the project outside OneDrive if Node reports file-read or esbui
 
 ## Personalized recommendations
 
-The signed-in **For You** page asks for movie preferences, retrieves candidate movies and full movie facts from TMDB, then optionally asks Gemini to rank only those verified candidates. The Gemini response can supply ranking and explanations, but TMDB remains the source of movie IDs and factual metadata. If Gemini is unavailable or returns unusable output, the API ranks the TMDB results using the selected preferences.
+The signed-in **For You** page asks for movie preferences, retrieves candidate movies and full movie facts from TMDB, then optionally asks Gemini to rank only those verified candidates. A separate history-based list uses the user's watched/rated films and recent submitted search terms to find similar TMDB candidates, then asks Gemini to rank them. If Gemini is unavailable or returns unusable output, the API ranks the TMDB results locally. Search history is recorded only for signed-in users submitting a full search, and is stored in the user's activity records; autocomplete queries are not recorded.
 
 ### Local setup
 
@@ -84,7 +84,7 @@ Copy `Backend/.env.example` to `Backend/.env`, preserve your existing local valu
 GEMINI_API_KEY=your_new_gemini_api_key
 ```
 
-Do not put Gemini credentials in `Frontend/.env`, use a `VITE_` prefix, or commit the key. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`. The endpoint is `POST /api/recommendations`, requires the existing JWT authentication, and limits each user to five requests per 15 minutes. Results are cached in backend memory for 30 minutes per user and preference set; no questionnaire data is persisted to MongoDB.
+Do not put Gemini credentials in `Frontend/.env`, use a `VITE_` prefix, or commit the key. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`. The endpoints `POST /api/recommendations` and `POST /api/recommendations/history` require JWT authentication and share a limit of five requests per user per 15 minutes. Results are cached in backend memory for 30 minutes. Questionnaire data is not persisted to MongoDB; history recommendations use saved activity and recent search terms.
 
 Run the feature locally using the existing app commands:
 

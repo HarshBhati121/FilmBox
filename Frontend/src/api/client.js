@@ -70,6 +70,7 @@ export const recommendationsApi = {
     method: 'POST',
     body: JSON.stringify(preferences),
   }),
+  fromHistory: () => api('/recommendations/history', { method: 'POST' }),
 };
 
 export const tvApi = {
@@ -112,4 +113,8 @@ export const activityApi = {
   getFeed: (page = 1) => api(`/activity/feed?page=${page}`),
   getRecent: () => api('/activity/recent'),
   getUserActivity: (userId) => api(`/activity/user/${userId}`),
+  recordSearch: (query) => api('/activity/search', {
+    method: 'POST',
+    body: JSON.stringify({ query }),
+  }),
 };

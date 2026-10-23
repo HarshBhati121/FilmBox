@@ -172,6 +172,8 @@ export default function Recommendations() {
   const [preferences, setPreferences] = useState(INITIAL_PREFERENCES);
   const [step, setStep] = useState(0);
   const [result, setResult] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ genre: 'all', rating: '0', runtime: 'any', year: 'all' });
@@ -212,6 +214,21 @@ export default function Recommendations() {
       setError(requestError.message || 'Could not find recommendations. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const findHistoryMovies = async () => {
+    setHistoryLoading(true);
+    setHistoryError('');
+    try {
+      const data = await recommendationsApi.fromHistory();
+      setResult(data);
+      setFilters({ genre: 'all', rating: '0', runtime: 'any', year: 'all' });
+      setOpenListId(null);
+    } catch (requestError) {
+      setHistoryError(requestError.message || 'Could not create recommendations from your history.');
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -273,8 +290,13 @@ export default function Recommendations() {
   };
 
   if (result) {
+    const isHistoryResult = result.basis === 'history';
     const sourceMessage = !result.recommendations?.length
-      ? 'TMDB is the source for movie facts. Try broadening your preferences to see more picks.'
+      ? isHistoryResult
+        ? result.message
+        : 'TMDB is the source for movie facts. Try broadening your preferences to see more picks.'
+      : result.source === 'gemini' && isHistoryResult
+      ? 'Ranked with Gemini using your watched films, ratings, and recent searches; movie facts are verified by TMDB.'
       : result.source === 'gemini'
       ? 'Ranked for your taste with Gemini; movie facts are verified by TMDB.'
       : 'Showing TMDB-based matches while AI ranking is unavailable.';
@@ -282,13 +304,17 @@ export default function Recommendations() {
       <div className="container page-wrapper recommendations-page">
         <div className="recommendation-results-header">
           <div>
-            <p className="recommendation-eyebrow">YOUR FILMBOX PICKS</p>
-            <h1 className="recommendation-title">A little more your kind of cinema.</h1>
+            <p className="recommendation-eyebrow">{isHistoryResult ? 'BASED ON YOUR HISTORY' : 'YOUR FILMBOX PICKS'}</p>
+            <h1 className="recommendation-title">{isHistoryResult ? 'More like what you love.' : 'A little more your kind of cinema.'}</h1>
             <p className="recommendation-subtitle">{sourceMessage}</p>
           </div>
           <div className="recommendation-results-actions">
-            <button type="button" className="btn btn-secondary" onClick={() => setResult(null)}>Edit preferences</button>
-            <button type="button" className="btn btn-secondary" onClick={() => findMovies()}>Regenerate</button>
+            <button type="button" className="btn btn-secondary" onClick={() => setResult(null)}>
+              {isHistoryResult ? 'Back to recommendations' : 'Edit preferences'}
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => isHistoryResult ? findHistoryMovies() : findMovies()}>
+              Regenerate
+            </button>
             <button type="button" className="btn btn-primary" onClick={startOver}>Start over</button>
           </div>
         </div>
@@ -344,8 +370,22 @@ export default function Recommendations() {
         <p className="recommendation-eyebrow">FILM DISCOVERY, PERSONALIZED</p>
         <h1 className="recommendation-title">Find your next favorite film.</h1>
         <p className="recommendation-subtitle">
-          Tell us what you love. We’ll search real TMDB films and find the ones that fit you.
+          Get movie picks based on your viewing and search history, or tell us what you love to customize them.
         </p>
+        {user ? (
+          <section className="recommendation-history-panel" aria-labelledby="history-recommendations-title">
+            <div>
+              <h2 id="history-recommendations-title">Inspired by your history</h2>
+              <p>Use films you’ve watched or rated and topics you’ve searched for to get a separate, personalized list. Gemini may use this history to rank your picks.</p>
+            </div>
+            <button type="button" className="btn btn-primary" onClick={findHistoryMovies} disabled={historyLoading}>
+              {historyLoading ? 'Finding your picks…' : 'Recommend from my history'}
+            </button>
+            {historyError && <p className="recommendation-error" role="alert">{historyError}</p>}
+          </section>
+        ) : (
+          <p className="recommendation-history-signin">Sign in to get recommendations based on your viewing and search history.</p>
+        )}
       </section>
       <section className="recommendation-questionnaire" aria-labelledby="questionnaire-title">
         <div className="recommendation-progress-heading">

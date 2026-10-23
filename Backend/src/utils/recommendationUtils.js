@@ -260,6 +260,46 @@ export function buildFallbackRecommendations(candidates, preferences, limit = 8)
     .slice(0, limit);
 }
 
+export function buildHistoryFallbackRecommendations(candidates, history, limit = 8) {
+  const genreCounts = new Map();
+  for (const movie of history.movies || []) {
+    for (const genre of movie.genres || []) {
+      genreCounts.set(genre.name, (genreCounts.get(genre.name) || 0) + 1);
+    }
+  }
+  const favoriteGenres = [...genreCounts]
+    .sort((left, right) => right[1] - left[1])
+    .map(([genre]) => genre);
+
+  return candidates
+    .map((movie) => {
+      const matchingGenres = (movie.genres || [])
+        .map((genre) => genre.name)
+        .filter((genre) => favoriteGenres.includes(genre));
+      const matchScore = Math.min(
+        92,
+        60 + matchingGenres.length * 10 + Math.min(8, Math.max(0, Number(movie.vote_average) - 6))
+      );
+      const historyReason = matchingGenres.length
+        ? `It shares ${matchingGenres.slice(0, 2).join(" and ")} with films in your history.`
+        : "It is connected to films and topics you have watched or searched for.";
+      return {
+        ...movie,
+        matchScore: Math.round(matchScore),
+        matchCategory: matchScore >= 80 ? "Strong match" : matchScore >= 65 ? "Good match" : "Worth a look",
+        reason: historyReason,
+        enjoyment: "This pick was selected from your recent viewing and search activity.",
+        characteristics: matchingGenres.slice(0, 3)
+      };
+    })
+    .sort((left, right) =>
+      right.matchScore - left.matchScore ||
+      Number(right.vote_average) - Number(left.vote_average) ||
+      Number(right.popularity) - Number(left.popularity)
+    )
+    .slice(0, limit);
+}
+
 export function validateGeminiRecommendations(response, candidates, limit = 8) {
   if (!response || !Array.isArray(response.recommendations)) return [];
   const candidateMap = new Map(candidates.map((movie) => [Number(movie.id), movie]));

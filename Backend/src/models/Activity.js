@@ -9,7 +9,7 @@ const activitySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["rated", "reviewed", "watchlisted", "watched", "followed", "listed"],
+      enum: ["rated", "reviewed", "watchlisted", "watched", "followed", "listed", "searched"],
       required: true
     },
     // The subject of the activity (a movie, another user, or a list)

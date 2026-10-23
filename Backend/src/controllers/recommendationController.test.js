@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createRecommendationHandler } from "./recommendationController.js";
+import {
+  createHistoryRecommendationHandler,
+  createRecommendationHandler
+} from "./recommendationController.js";
 
 const preferences = {
   genres: ["Sci-Fi"],
@@ -104,4 +107,78 @@ test("returns a useful upstream error when TMDB candidate loading fails", async 
 
   assert.equal(res.statusCode, 502);
   assert.match(res.body.message, /TMDB/);
+});
+
+test("ranks history-based candidates with Gemini using the user's history", async () => {
+  let receivedHistory;
+  const handler = createHistoryRecommendationHandler({
+    getHistory: async () => ({
+      movies: [{ id: 12, title: "Watched Film", genres: [{ name: "Sci-Fi" }], rating: 4.5 }],
+      searchedTerms: ["space exploration"]
+    }),
+    getCandidates: async (history) => ({
+      movies: history.movies,
+      candidates: [candidate]
+    }),
+    getAiRecommendations: async (history, candidates) => {
+      receivedHistory = history;
+      return [{
+        ...candidates[0],
+        matchScore: 90,
+        matchCategory: "Strong match",
+        reason: "It fits your viewing history.",
+        enjoyment: "You may enjoy its story.",
+        characteristics: ["Sci-Fi"]
+      }];
+    }
+  });
+  const res = responseRecorder();
+
+  await handler({ userId: "history-ai-user" }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.source, "gemini");
+  assert.equal(res.body.basis, "history");
+  assert.deepEqual(receivedHistory.searchedTerms, ["space exploration"]);
+  assert.equal(res.body.recommendations[0].id, candidate.id);
+});
+
+test("returns guidance when a user has no viewing or search history", async () => {
+  let candidateProviderCalled = false;
+  const handler = createHistoryRecommendationHandler({
+    getHistory: async () => ({ movies: [], searchedTerms: [] }),
+    getCandidates: async () => {
+      candidateProviderCalled = true;
+      return { movies: [], candidates: [] };
+    }
+  });
+  const res = responseRecorder();
+
+  await handler({ userId: "new-history-user" }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(candidateProviderCalled, false);
+  assert.equal(res.body.recommendations.length, 0);
+  assert.match(res.body.message, /Watch or rate films/);
+});
+
+test("falls back to history-ranked TMDB recommendations when Gemini is unavailable", async () => {
+  const handler = createHistoryRecommendationHandler({
+    getHistory: async () => ({
+      movies: [{ id: 12, title: "Watched Film", genres: [{ name: "Sci-Fi" }] }],
+      searchedTerms: []
+    }),
+    getCandidates: async (history) => ({
+      movies: history.movies,
+      candidates: [candidate]
+    }),
+    getAiRecommendations: async () => { throw new Error("provider unavailable"); }
+  });
+  const res = responseRecorder();
+
+  await handler({ userId: "history-fallback-user" }, res);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.source, "tmdb");
+  assert.match(res.body.recommendations[0].reason, /Sci-Fi/);
 });

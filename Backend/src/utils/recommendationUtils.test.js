@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildDiscoverParams,
   buildFallbackRecommendations,
+  buildHistoryFallbackRecommendations,
   filterCandidates,
   validateGeminiRecommendations,
   validatePreferences
@@ -100,4 +101,18 @@ test("TMDB fallback ranks preference matches and creates user-facing explanation
   assert.equal(ranked[0].id, 100);
   assert.match(ranked[0].reason, /Sci-Fi/);
   assert.ok(ranked[0].matchScore > 0);
+});
+
+test("history fallback prioritizes genres from watched and rated films", () => {
+  const ranked = buildHistoryFallbackRecommendations([
+    movie({ id: 100, genres: [{ id: 878, name: "Sci-Fi" }], vote_average: 7.8 }),
+    movie({ id: 101, genres: [{ id: 35, name: "Comedy" }], vote_average: 8.5 })
+  ], {
+    movies: [{ id: 10, genres: [{ name: "Sci-Fi" }, { name: "Drama" }] }],
+    searchedTerms: ["space"]
+  });
+
+  assert.equal(ranked[0].id, 100);
+  assert.match(ranked[0].reason, /Sci-Fi/);
+  assert.equal(ranked.length, 2);
 });

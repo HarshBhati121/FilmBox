@@ -5,6 +5,10 @@
 }
 .recommendation-title { font-size: clamp(26px, 5vw, 40px); line-height: 1.1; max-width: 680px; }
 .recommendation-subtitle { color: var(--text-secondary); font-size: 15px; margin-top: 10px; max-width: 660px; }
+.recommendation-history-panel { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px; margin: 0 0 22px; border: 1px solid #ccc; background: #fff; }
+.recommendation-history-panel h2 { font-size: 18px; }
+.recommendation-history-panel p, .recommendation-history-signin { margin-top: 5px; color: var(--text-secondary); font-size: 13px; }
+.recommendation-history-panel .recommendation-error { flex-basis: 100%; }
 .recommendation-questionnaire { max-width: 780px; padding: 22px; border: 1px solid #ccc; background: #fff; }
 .recommendation-progress-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .recommendation-progress-heading h2 { font-size: 20px; }
@@ -70,6 +74,7 @@
   .recommendation-questionnaire { padding: 16px; }
   .recommendation-results-header { align-items: flex-start; flex-direction: column; }
   .recommendation-results-actions { justify-content: flex-start; }
+  .recommendation-history-panel { align-items: flex-start; flex-direction: column; }
   .recommendation-card { grid-template-columns: 100px minmax(0, 1fr); gap: 12px; padding: 10px; }
   .recommendation-card-heading h2 { font-size: 16px; }
   .recommendation-filter { flex: 1 1 145px; }

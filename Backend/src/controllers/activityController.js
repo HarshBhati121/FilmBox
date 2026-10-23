@@ -111,3 +111,32 @@ export const getRecentActivity = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const recordSearch = async (req, res) => {
+  const query = typeof req.body?.query === "string"
+    ? req.body.query.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 80)
+    : "";
+  if (query.length < 2) {
+    return res.status(400).json({ message: "Search query must contain at least 2 characters." });
+  }
+
+  try {
+    const normalizedQuery = query.toLocaleLowerCase();
+    const recentDuplicate = await Activity.findOne({
+      userId: req.userId,
+      type: "searched",
+      meta: normalizedQuery,
+      createdAt: { $gte: new Date(Date.now() - 15 * 60 * 1000) }
+    });
+    if (!recentDuplicate) {
+      await Activity.create({
+        userId: req.userId,
+        type: "searched",
+        meta: normalizedQuery
+      });
+    }
+    return res.status(204).end();
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};

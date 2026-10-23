@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { movieApi, tvApi } from '../api/client';
+import toast from 'react-hot-toast';
+import { activityApi, movieApi, tvApi } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 const IMAGE_BASE = import.meta.env.VITE_TMDB_IMAGE_BASE || 'https://image.tmdb.org/t/p/w200';
 
@@ -24,6 +26,7 @@ function ResultRow({ item, href }) {
 
 export default function SearchPage() {
   const [params] = useSearchParams();
+  const { user } = useAuth();
   const query = params.get('q') || '';
   const [movies, setMovies] = useState([]);
   const [shows, setShows] = useState([]);
@@ -59,6 +62,13 @@ export default function SearchPage() {
 
     return () => { mounted = false; };
   }, [query]);
+
+  useEffect(() => {
+    if (!user || query.trim().length < 2) return;
+    activityApi.recordSearch(query).catch((recordError) => {
+      toast.error(`Could not save this search to your history: ${recordError.message}`);
+    });
+  }, [query, user]);
 
   return (
     <div className="container page-wrapper">
